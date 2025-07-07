@@ -8,7 +8,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class UserModel extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -18,9 +18,10 @@ class User extends Authenticatable
      * @var array<int, string>
      */
     protected $fillable = [
-        'name',
-        'email',
+        'id_pegawai',
         'password',
+        'id_role',
+        'is_active',
     ];
 
     /**
@@ -33,13 +34,17 @@ class User extends Authenticatable
         'remember_token',
     ];
 
-    /**
-     * The attributes that should be cast.
-     *
-     * @var array<string, string>
-     */
     protected $casts = [
-        'email_verified_at' => 'datetime',
-        'password' => 'hashed',
+        'is_active' => 'boolean',
     ];
+
+    public function role()
+    {
+        return $this->belongsTo(RoleModel::class, 'id_role');
+    }
+
+    public function pegawai()
+    {
+        return $this->belongsTo(PegawaiModel::class, 'id_pegawai');
+    }
 }
