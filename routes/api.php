@@ -28,9 +28,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //absensi
     Route::prefix('absensi')->group(function () {
-        //Role Pegawai
+        Route::get('/', [AbsensiController::class, 'getAllAttendance']);//ROle HRD
         Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
         Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
+
     });
 
 });

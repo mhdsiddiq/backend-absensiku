@@ -22,7 +22,7 @@ class AbsensiController extends Controller
         if (!$absensi) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No attendance record found'
+                'message' => 'No attendance data found'
             ], 404);
         }
 
@@ -181,6 +181,33 @@ class AbsensiController extends Controller
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to check in: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function getAllAttendance()
+    {
+        try {
+            $absensi = Absensi::with('pegawai.nama')->get();
+
+            if ($absensi->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No attendance data found',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'List of all attendance data',
+                'data' => $absensi
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'No attendance data found',
+                'data' => null
             ], 500);
         }
     }
