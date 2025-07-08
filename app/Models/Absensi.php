@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Absensi extends Model
 {
-     use HasFactory;
+    use HasFactory;
 
     protected $table = 'absensi';
 
@@ -34,10 +34,10 @@ class Absensi extends Model
         'jadwal_keluar' => 'datetime:H:i',
         'jam_masuk' => 'datetime:H:i',
         'jam_keluar' => 'datetime:H:i',
-        'latitude_masuk' => 'decimal:8,6',
-        'longitude_masuk' => 'decimal:9,6',
-        'latitude_keluar' => 'decimal:8,6',
-        'longitude_keluar' => 'decimal:9,6',
+        'latitude_masuk' => 'decimal:6',
+        'longitude_masuk' => 'decimal:6',
+        'latitude_keluar' => 'decimal:6',
+        'longitude_keluar' => 'decimal:6',
         'terlambat' => 'integer',
         'pulang_cepat' => 'integer',
         'durasi_kerja' => 'integer',

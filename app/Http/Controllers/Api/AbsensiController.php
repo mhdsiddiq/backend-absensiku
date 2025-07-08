@@ -16,8 +16,8 @@ class AbsensiController extends Controller
     public function checkAttendance($id)
     {
         $absensi = Absensi::where('id_pegawai', $id)
-                        ->whereDate('tanggal', Carbon::today())
-                        ->first();
+            ->whereDate('tanggal', Carbon::today())
+            ->first();
 
         if (!$absensi) {
             return response()->json([
@@ -35,20 +35,42 @@ class AbsensiController extends Controller
             'has_checked_in' => $hasCheckedIn
         ], 200);
     }
+    private function hitungJarak($lat1, $lon1, $lat2, $lon2)
+    {
+        $earthRadius = 6371000; // radius bumi dalam meter
+
+        $latFrom = deg2rad($lat1);
+        $lonFrom = deg2rad($lon1);
+        $latTo   = deg2rad($lat2);
+        $lonTo   = deg2rad($lon2);
+
+        $latDelta = $latTo - $latFrom;
+        $lonDelta = $lonTo - $lonFrom;
+
+        $a = sin($latDelta / 2) * sin($latDelta / 2) +
+            cos($latFrom) * cos($latTo) *
+            sin($lonDelta / 2) * sin($lonDelta / 2);
+
+        $c = 2 * atan2(sqrt($a), sqrt(1 - $a));
+
+        $distance = $earthRadius * $c;
+
+        return $distance;
+    }
 
     public function storeCheckIn(Request $request, $id)
     {
         try {
             // Validasi input
             $validator = Validator::make($request->all(), [
-                'latitude'   => 'required|varchar',
-                'longitude'  => 'required|varchar',
+                'latitude'   => 'required|numeric',
+                'longitude'  => 'required|numeric',
             ]);
 
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
-                    'message'=> 'Validation failed',
+                    'message' => 'Validation failed',
                     'errors' => $validator->errors()
                 ], 422);
             }
@@ -64,8 +86,8 @@ class AbsensiController extends Controller
 
             // Cek apakah sudah ada absensi hari ini
             $existingAbsensi = Absensi::where('id_pegawai', $id)
-                                    ->whereDate('tanggal', Carbon::today())
-                                    ->first();
+                ->whereDate('tanggal', Carbon::today())
+                ->first();
 
             if ($existingAbsensi && !is_null($existingAbsensi->jam_masuk)) {
                 return response()->json([
@@ -78,8 +100,8 @@ class AbsensiController extends Controller
                 ], 400);
             }
 
-            //ambil jam kerja
-            $jamKerja = JamKerja::where('is_active', true)->first();
+            // Ambil jam kerja
+            $jamKerja = JamKerja::first();
 
             if (!$jamKerja) {
                 return response()->json([
@@ -99,13 +121,15 @@ class AbsensiController extends Controller
             }
 
             // Validasi lokasi menggunakan koordinat dari tabel jam_kerja
-            $kantorLat = $jamKerja->latitude;
-            $kantorLng = $jamKerja->longitude;
+            $kantorLat = floatval($jamKerja->latitude);
+            $kantorLng = floatval($jamKerja->longitude);
             $radiusKantor = 100; // meter
 
-            $jarak = $this->hitungJarak($request->latitude, $request->longitude, $kantorLat, $kantorLng);
-            $keterangan = $jarak <= $radiusKantor ? 'Valid' : 'Tidak Valid';
+            $latUser = floatval($request->latitude);
+            $lngUser = floatval($request->longitude);
 
+            $jarak = $this->hitungJarak($latUser, $lngUser, $kantorLat, $kantorLng);
+            $keterangan = $jarak <= $radiusKantor ? 'Valid' : 'Tidak Valid';
 
             if ($existingAbsensi) {
                 $existingAbsensi->update([
@@ -115,7 +139,7 @@ class AbsensiController extends Controller
                     'latitude_masuk'  => $request->latitude,
                     'longitude_masuk' => $request->longitude,
                     'terlambat'       => $terlambat,
-                    'keterangan'      =>  "Absensi masuk " . $keterangan
+                    'keterangan'      => "Absensi masuk " . $keterangan
                 ]);
 
                 $absensi = $existingAbsensi;
@@ -128,8 +152,8 @@ class AbsensiController extends Controller
                     'jam_masuk'       => $currentTime->format('H:i:s'),
                     'latitude_masuk'  => $request->latitude,
                     'longitude_masuk' => $request->longitude,
-                    'terlambat' => $terlambat,
-                    'keterangan' => $keterangan . ' - ' . ($request->keterangan ?? 'Absensi masuk')
+                    'terlambat'       => $terlambat,
+                    'keterangan'      => $keterangan . ' - ' . ($request->keterangan ?? 'Absensi masuk')
                 ]);
             }
 
@@ -153,8 +177,7 @@ class AbsensiController extends Controller
                     'validasi_lokasi'   => $keterangan
                 ]
             ], $statusCode);
-
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Failed to check in: ' . $e->getMessage()

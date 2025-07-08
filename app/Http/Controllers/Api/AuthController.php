@@ -13,7 +13,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'employee_id' => 'required|string',
+            'id_pegawai' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -26,7 +26,7 @@ class AuthController extends Controller
         }
 
         $user = Users::with(['role', 'pegawai'])
-            ->where('id_pegawai', $request->employee_id)
+            ->where('id_pegawai', $request->id_pegawai)
             ->where('is_active', true)
             ->first();
 
