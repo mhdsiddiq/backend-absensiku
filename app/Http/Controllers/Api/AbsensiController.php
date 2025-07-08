@@ -188,7 +188,7 @@ class AbsensiController extends Controller
     public function getAllAttendance()
     {
         try {
-            $absensi = Absensi::with('pegawai.nama')->get();
+            $absensi = Absensi::with('pegawai')->get();
 
             if ($absensi->isEmpty()) {
                 return response()->json([
