@@ -206,7 +206,37 @@ class AbsensiController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'No attendance data found',
+                'message' => 'Failed to retrieve attendance data for this year: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
+    public function getAttendanceYear()
+    {
+        try {
+            $year = now()->year;
+            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
+                        ->whereYear('tanggal', $year)
+                        ->get();
+
+            if ($absensi->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No attendance data found for this year',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'List of attendance data for the current year',
+                'data' => $absensi
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve attendance data for this year: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }

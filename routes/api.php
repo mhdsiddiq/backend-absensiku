@@ -28,7 +28,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //absensi
     Route::prefix('absensi')->group(function () {
-        Route::get('/', [AbsensiController::class, 'getAllAttendance']);//ROle HRD
+        //Role HRD
+        Route::get('/', [AbsensiController::class, 'getAllAttendance']);
+        Route::get('this-year', [AbsensiController::class, 'getAttendanceYear']);
+
         Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
         Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
 
