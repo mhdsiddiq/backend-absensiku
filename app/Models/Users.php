@@ -8,15 +8,11 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
 
-class UserModel extends Authenticatable
+class Users extends Authenticatable
 {
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var array<int, string>
-     */
+    protected $table = 'users';
     protected $fillable = [
         'id_pegawai',
         'password',
@@ -40,11 +36,11 @@ class UserModel extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(RoleModel::class, 'id_role');
+        return $this->belongsTo(Role::class, 'id_role');
     }
 
     public function pegawai()
     {
-        return $this->belongsTo(PegawaiModel::class, 'id_pegawai');
+        return $this->belongsTo(Pegawai::class, 'id_pegawai');
     }
 }

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PengajuanKetidakhadiranModel extends Model
+class PengajuanKetidakhadiran extends Model
 {
     use HasFactory;
 
@@ -34,7 +34,7 @@ class PengajuanKetidakhadiranModel extends Model
 
     public function pegawai()
     {
-        return $this->belongsTo(PegawaiModel::class, 'id_pegawai');
+        return $this->belongsTo(pegawai::class, 'id_pegawai');
     }
 
     public function kategori()
@@ -44,6 +44,6 @@ class PengajuanKetidakhadiranModel extends Model
 
     public function approver()
     {
-        return $this->belongsTo(UserModel::class, 'disetujui_oleh');
+        return $this->belongsTo(Users::class, 'disetujui_oleh');
     }
 }

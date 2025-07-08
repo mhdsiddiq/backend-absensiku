@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AbsensiModel extends Model
+class Absensi extends Model
 {
      use HasFactory;
 
@@ -45,6 +45,6 @@ class AbsensiModel extends Model
 
     public function pegawai()
     {
-        return $this->belongsTo(PegawaiModel::class, 'id_pegawai');
+        return $this->belongsTo(Pegawai::class, 'id_pegawai');
     }
 }

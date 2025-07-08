@@ -1,7 +1,10 @@
 <?php
 
+use App\Http\Controllers\Api\AbsensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\JamKerjaController;
 
 /*
 |--------------------------------------------------------------------------
@@ -14,6 +17,20 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('/login', [AuthController::class, 'login']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/logout', [AuthController::class, 'logout']);
+    Route::get('/profile', [AuthController::class, 'profile']);
+
+    //jam kerja
+    Route::get('/jam-kerja', [JamKerjaController::class, 'getShift']);
+
+    //absensi
+    Route::prefix('absensi')->group(function () {
+        //Role Pegawai
+        Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
+        Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
+    });
+
 });

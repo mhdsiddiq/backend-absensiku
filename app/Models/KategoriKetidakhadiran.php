@@ -23,6 +23,6 @@ class KategoriKetidakhadiranModel extends Model
 
     public function pengajuanKetidakhadiran()
     {
-        return $this->hasMany(PengajuanKetidakhadiranModel::class, 'id_kategori');
+        return $this->hasMany(PengajuanKetidakhadiran::class, 'id_kategori');
     }
 }

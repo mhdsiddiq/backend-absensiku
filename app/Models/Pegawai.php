@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class PegawaiModel extends Model
+class Pegawai extends Model
 {
     use HasFactory;
 
@@ -29,16 +29,16 @@ class PegawaiModel extends Model
 
     public function user()
     {
-        return $this->hasOne(UserModel::class, 'id_pegawai');
+        return $this->hasOne(Users::class, 'id_pegawai');
     }
 
     public function absensi()
     {
-        return $this->hasMany(AbsensiModel::class, 'id_pegawai');
+        return $this->hasMany(Absensi::class, 'id_pegawai');
     }
 
     public function pengajuanKetidakhadiran()
     {
-        return $this->hasMany(PengajuanKetidakhadiranModel::class, 'id_pegawai');
+        return $this->hasMany(PengajuanKetidakhadiran::class, 'id_pegawai');
     }
 }
