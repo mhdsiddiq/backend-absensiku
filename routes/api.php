@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JamKerjaController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
+use App\Http\Controllers\Api\PegawaiController;
 
 /*
 |--------------------------------------------------------------------------
@@ -24,9 +25,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
 
+    //pegawai
+    Route::get('/pegawai', [PegawaiController::class, 'getAllEmployee']);
+
     //jam kerja
     Route::get('/jam-kerja', [JamKerjaController::class, 'getShift']);
-
     //kategori ketidakhadiran
     Route::get('/kategori', [KategoriketidakhadiranController::class, 'getCategory']);
 

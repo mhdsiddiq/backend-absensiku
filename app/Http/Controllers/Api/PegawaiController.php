@@ -3,16 +3,16 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\KategoriKetidakhadiran;
+use App\Models\Pegawai;
 use Illuminate\Http\Request;
 
-class KategoriketidakhadiranController extends Controller
+class PegawaiController extends Controller
 {
-    public function getCategory()
+    public function getAllEmployee()
     {
         try {
-            $kategori = KategoriKetidakhadiran::all();
-            if (!$kategori) {
+            $pegawai = Pegawai::select('id', 'nip', 'nama', 'nama_jabatan')->get();
+            if (!$pegawai) {
                 return response()->json([
                     'status' => 'error',
                     'message' => 'Data Not Found'
@@ -20,13 +20,13 @@ class KategoriketidakhadiranController extends Controller
             }
             return response()->json([
                 'status' => 'success',
-                'message' => 'Absence Category data has been successfully retrieved',
-                'data' => $kategori
+                'message' => 'Employees data has been successfully retrieved',
+                'data' => $pegawai
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'An error occurred while retrieving Absence category data.',
+                'message' => 'An error occurred while retrieving Employees data.',
                 'error' => $e->getMessage()
             ], 500);
         }
