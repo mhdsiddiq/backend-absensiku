@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JamKerjaController;
+use App\Http\Controllers\Api\KategoriketidakhadiranController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,6 +26,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     //jam kerja
     Route::get('/jam-kerja', [JamKerjaController::class, 'getShift']);
+
+    //kategori ketidakhadiran
+    Route::get('/kategori', [KategoriketidakhadiranController::class, 'getCategory']);
 
     //absensi
     Route::prefix('absensi')->group(function () {
