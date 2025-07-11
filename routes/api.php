@@ -51,9 +51,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('submission')->group(function () {
         //Role HRD
         Route::get('/', [PengajuanController::class, 'getAllSubmission']);
+        Route::post('approve/{id}', [PengajuanController::class, 'approve']);
 
         //role pegawai untuk pengajuan per user
         Route::get('employees', [PengajuanController::class, 'getEmployeeSubmission']);
+        Route::post('/', [PengajuanController::class, 'storeSubmission']);
     });
 
 });

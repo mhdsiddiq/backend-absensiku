@@ -182,8 +182,6 @@ class AbsensiController extends Controller
                     'longitude_masuk'   => $absensi->longitude_masuk,
                     'terlambat'         => $absensi->terlambat,
                     'keterangan'        => $absensi->keterangan,
-                    'jarak_dari_kantor' => round($jarak, 2) . ' meter',
-                    'validasi_lokasi'   => $keterangan
                 ]
             ], $statusCode);
         } catch (\Exception $e) {

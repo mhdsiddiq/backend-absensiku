@@ -7,6 +7,7 @@ use App\Models\PengajuanKetidakhadiran;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 
 class PengajuanController extends Controller
 {
@@ -85,7 +86,84 @@ class PengajuanController extends Controller
 
         $dokumen = null;
         if($request->hasFile('dokumen_pendukung')){
-            $dokumen = $request->file('dokumen_pendukung');
+            $dokumen = $request->file('dokumen_pendukung')->store('public/dokumen_pendukung');
+            $dokumen = Storage::url($dokumen);
+        }
+
+        try{
+            $pengajuan = PengajuanKetidakhadiran::create([
+                'id_pegawai'      => $id_pegawai,
+                'id_kategori'     => $request->id_kategori,
+                'tanggal_mulai'   => $request->tanggal_mulai,
+                'tanggal_selesai' => $request->tanggal_selesai,
+                'jumlah_hari'     => $jml_hari,
+                'alasan'          => $request->alasan,
+                'dokumen_pendukung'=> $dokumen,
+                'status_pengajuan' => 'PENDING'
+            ]);
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Submission of absence data has been successfully',
+                'data'    => $pengajuan
+            ], 200);
+
+        }catch (\Exception $e) {
+            if ($dokumen && Storage::exists(str_replace('/storage/', 'public/', $dokumen))) {
+                Storage::delete(str_replace('/storage/', 'public/', $dokumen));
+            }
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Gagal mengajukan ketidakhadiran.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function approve(Request $request, $id)
+    {
+        $request->validate([
+            'status_pengajuan' => 'required|in:APPROVED,REJECTED',
+            'catatan_hrd' => 'nullable|string|max:250',
+        ]);
+
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
+        $id_hrd = Auth::id_pegawai();
+        try{
+            $pengajuan = PengajuanKetidakhadiran::find($id);
+
+            if($pengajuan){
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Submission data not found.',
+                ], 500);
+            }
+
+            $pengajuan->status_pengajuan = $request->status_pengajuan;
+            $pengajuan->catatan_hrd      = $request->catatan_hrd;
+            $pengajuan->disetujui_oleh   = $id_hrd;
+            $pengajuan->tanggal_disetujui= Carbon::now();
+
+            $pengajuan->save();
+
+            return response()->json([
+                'status'  => 'success',
+                'message' => 'Submission data successfully approved',
+                'data'    => $pengajuan
+            ], 200);
+
+        }catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Failed to apporve the submission.',
+                'error' => $e->getMessage()
+            ], 500);
         }
     }
 }
