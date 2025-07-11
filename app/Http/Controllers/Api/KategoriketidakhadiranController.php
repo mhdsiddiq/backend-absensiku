@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\KategoriKetidakhadiran;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class KategoriketidakhadiranController extends Controller
 {
     public function getCategory()
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
         try {
             $kategori = KategoriKetidakhadiran::all();
             if (!$kategori) {

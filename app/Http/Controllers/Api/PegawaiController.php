@@ -5,11 +5,19 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Pegawai;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class PegawaiController extends Controller
 {
     public function getAllEmployee()
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
         try {
             $pegawai = Pegawai::select('id', 'nip', 'nama', 'nama_jabatan')->get();
             if (!$pegawai) {

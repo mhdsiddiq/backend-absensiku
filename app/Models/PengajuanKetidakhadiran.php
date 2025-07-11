@@ -34,7 +34,7 @@ class PengajuanKetidakhadiran extends Model
 
     public function pegawai()
     {
-        return $this->belongsTo(pegawai::class, 'id_pegawai');
+        return $this->belongsTo(Pegawai::class, 'id_pegawai');
     }
 
     public function kategori()
@@ -44,6 +44,6 @@ class PengajuanKetidakhadiran extends Model
 
     public function approver()
     {
-        return $this->belongsTo(Users::class, 'disetujui_oleh');
+        return $this->belongsTo(Pegawai::class, 'disetujui_oleh');
     }
 }

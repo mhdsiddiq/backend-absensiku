@@ -5,11 +5,18 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\JamKerja;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class JamKerjaController extends Controller
 {
     public function getShift()
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
         try {
             $jamKerja = JamKerja::first();
             if (!$jamKerja) {

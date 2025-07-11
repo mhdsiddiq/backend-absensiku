@@ -9,12 +9,20 @@ use App\Models\Pegawai;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Validator;
 
 class AbsensiController extends Controller
 {
     public function checkAttendance($id)
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
         $absensi = Absensi::where('id_pegawai', $id)
             ->whereDate('tanggal', Carbon::today())
             ->first();
@@ -248,7 +256,7 @@ class AbsensiController extends Controller
             if ($currentTime->gt($jamKeluarTerjadwal)) {
                 $plg_cepat = $currentTime->format('H:i:s');
             }
-            
+
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
@@ -259,6 +267,12 @@ class AbsensiController extends Controller
 
     public function getAllAttendance()
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
         try {
             $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->get();
 
@@ -286,6 +300,13 @@ class AbsensiController extends Controller
 
     public function getAttendanceYear()
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
         try {
             $year = now()->year;
             $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
@@ -316,6 +337,12 @@ class AbsensiController extends Controller
 
     public function getAllAttendanceEmployee($id) //id_pegawai
     {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
         try {
             $pegawai = Pegawai::where('id', $id)->first();
 
