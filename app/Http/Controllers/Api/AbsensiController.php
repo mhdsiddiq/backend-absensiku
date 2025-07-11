@@ -35,6 +35,7 @@ class AbsensiController extends Controller
             'has_checked_in' => $hasCheckedIn
         ], 200);
     }
+
     private function hitungJarak($lat1, $lon1, $lat2, $lon2)
     {
         $earthRadius = 6371000; // radius bumi dalam meter
@@ -206,7 +207,7 @@ class AbsensiController extends Controller
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve attendance data for this year: ' . $e->getMessage(),
+                'message' => 'Failed to retrieve attendance data : ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
@@ -241,4 +242,48 @@ class AbsensiController extends Controller
             ], 500);
         }
     }
+
+    public function getAllAttendanceEmployee($id)//id_pegawai
+    {
+        try {
+            $pegawai= Pegawai::where('id', $id)->first();
+
+            if (!$pegawai) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'User not associated with any employee data',
+                    'data' => null
+                ], 404);
+            }
+
+            $year = now()->year;
+            $month = now()->month;
+            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
+                        ->where('id_pegawai', $pegawai->id)
+                        ->whereYear('tanggal', $year)
+                        ->whereMonth('tanggal', $month)
+                        ->get();
+
+            if ($absensi->isEmpty()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'No attendance data found for this month',
+                    'data' => []
+                ], 200);
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => 'List of attendance data for the current month',
+                'data' => $absensi
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to retrieve attendance data for this month: ' . $e->getMessage(),
+                'data' => null
+            ], 500);
+        }
+    }
+
 }

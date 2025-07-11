@@ -37,11 +37,13 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::prefix('absensi')->group(function () {
         //Role HRD
         Route::get('/', [AbsensiController::class, 'getAllAttendance']);
-        Route::get('this-year', [AbsensiController::class, 'getAttendanceYear']);
+        Route::get('this-year', [AbsensiController::class, 'getAttendanceYear']);//absensi karyawan dalam 1 tahun
 
         Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
         Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
 
+        //Role pegawai
+        Route::get('this-month/{id}', [AbsensiController::class, 'getAllAttendanceEmployee']);
     });
 
 });
