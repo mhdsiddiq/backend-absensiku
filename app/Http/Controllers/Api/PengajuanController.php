@@ -11,7 +11,7 @@ class PengajuanController extends Controller
     public function getAllSubmission()
     {
         try{
-            $pengajuan = PengajuanKetidakhadiran::all();
+            $pengajuan = PengajuanKetidakhadiran::with('pegawai:id,nama,nama_jabatan')->get();
 
             return response()->json([
                 'status' => 'success',
