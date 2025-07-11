@@ -39,7 +39,7 @@ class PengajuanKetidakhadiran extends Model
 
     public function kategori()
     {
-        return $this->belongsTo(KategoriKetidakhadiranModel::class, 'id_kategori');
+        return $this->belongsTo(KategoriKetidakhadiran::class, 'id_kategori');
     }
 
     public function approver()

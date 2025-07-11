@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JamKerjaController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
 use App\Http\Controllers\Api\PegawaiController;
+use App\Http\Controllers\Api\PengajuanController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,15 +27,16 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'profile']);
 
     //pegawai
-    Route::get('/pegawai', [PegawaiController::class, 'getAllEmployee']);
+    Route::get('/employee', [PegawaiController::class, 'getAllEmployee']);
 
     //jam kerja
-    Route::get('/jam-kerja', [JamKerjaController::class, 'getShift']);
+    Route::get('/working-hour', [JamKerjaController::class, 'getShift']);
+
     //kategori ketidakhadiran
-    Route::get('/kategori', [KategoriketidakhadiranController::class, 'getCategory']);
+    Route::get('/category', [KategoriketidakhadiranController::class, 'getCategory']);
 
     //absensi
-    Route::prefix('absensi')->group(function () {
+    Route::prefix('attendance')->group(function () {
         //Role HRD
         Route::get('/', [AbsensiController::class, 'getAllAttendance']);
         Route::get('this-year', [AbsensiController::class, 'getAttendanceYear']);//absensi karyawan dalam 1 tahun
@@ -44,6 +46,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
         //Role pegawai
         Route::get('this-month/{id}', [AbsensiController::class, 'getAllAttendanceEmployee']);
+    });
+
+    Route::prefix('submission')->group(function () {
+        //Role HRD
+        Route::get('/', [PengajuanController::class, 'getAllSubmission']);
     });
 
 });

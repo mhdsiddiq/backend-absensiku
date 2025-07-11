@@ -186,6 +186,77 @@ class AbsensiController extends Controller
         }
     }
 
+    public function storeCheckOut(Request $request, $id)
+    {
+        try {
+            $validator = Validator::make($request->all(), [
+                'latitude'   => 'required|numeric',
+                'longitude'  => 'required|numeric',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Validation failed',
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            $pegawai = Pegawai::find($id);
+            if (!$pegawai) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Employee not found'
+                ], 404);
+            }
+
+            $existingAbsensi = Absensi::where('id_pegawai', $id)
+                ->whereDate('tanggal', Carbon::today())
+                ->first();
+
+            // if (!$existingAbsensi || is_null($existingAbsensi->jam_masuk)) {
+            //     return response()->json([
+            //         'status' => 'error',
+            //         'message' => 'No check-in record found for today'
+            //     ], 400);
+            // }
+
+            if (!is_null($existingAbsensi->jam_keluar)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Already checked out today',
+                    'data' => [
+                        'jam_keluar' => $existingAbsensi->jam_keluar,
+                        'tanggal'    => $existingAbsensi->tanggal
+                    ]
+                ], 400);
+            }
+
+            $jamKerja = JamKerja::first();
+
+            if (!$jamKerja) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Work schedule not found'
+                ], 404);
+            }
+
+            $currentTime = Carbon::now();
+            $jamKeluarTerjadwal = Carbon::parse($jamKerja->jam_keluar);
+
+            $plg_cepat = null;
+            if ($currentTime->gt($jamKeluarTerjadwal)) {
+                $plg_cepat = $currentTime->format('H:i:s');
+            }
+            
+        } catch (\Exception $e) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Failed to check out: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function getAllAttendance()
     {
         try {
@@ -256,9 +327,9 @@ class AbsensiController extends Controller
                 ], 404);
             }
 
-            $year = now()->year;
+            $year  = now()->year;
             $month = now()->month;
-            $absensi = Absensi::select('id', 'id_pegawai', 'tanggal', 'jam_masuk', 'jam_keluar', 'terlambat')
+            $absensi = Absensi::select('id', 'id_pegawai', 'tanggal', 'jadwal_masuk', 'jadwal_keluar', 'jam_masuk', 'jam_keluar', 'terlambat')
                 ->with('pegawai:id,nama,nama_jabatan')
                 ->where('id_pegawai', $pegawai->id)
                 ->whereYear('tanggal', $year)
