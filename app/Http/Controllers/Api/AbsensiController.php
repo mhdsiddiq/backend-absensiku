@@ -218,8 +218,8 @@ class AbsensiController extends Controller
         try {
             $year = now()->year;
             $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
-                        ->whereYear('tanggal', $year)
-                        ->get();
+                ->whereYear('tanggal', $year)
+                ->get();
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -243,10 +243,10 @@ class AbsensiController extends Controller
         }
     }
 
-    public function getAllAttendanceEmployee($id)//id_pegawai
+    public function getAllAttendanceEmployee($id) //id_pegawai
     {
         try {
-            $pegawai= Pegawai::where('id', $id)->first();
+            $pegawai = Pegawai::where('id', $id)->first();
 
             if (!$pegawai) {
                 return response()->json([
@@ -258,11 +258,12 @@ class AbsensiController extends Controller
 
             $year = now()->year;
             $month = now()->month;
-            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
-                        ->where('id_pegawai', $pegawai->id)
-                        ->whereYear('tanggal', $year)
-                        ->whereMonth('tanggal', $month)
-                        ->get();
+            $absensi = Absensi::select('id', 'id_pegawai', 'tanggal', 'jam_masuk', 'jam_keluar', 'terlambat')
+                ->with('pegawai:id,nama,nama_jabatan')
+                ->where('id_pegawai', $pegawai->id)
+                ->whereYear('tanggal', $year)
+                ->whereMonth('tanggal', $month)
+                ->get();
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -285,5 +286,4 @@ class AbsensiController extends Controller
             ], 500);
         }
     }
-
 }
