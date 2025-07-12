@@ -47,7 +47,7 @@ class PengajuanController extends Controller
             ], 401);
         }
 
-        $id_pegawai = Auth::id_pegawai();
+        $id_pegawai = Auth::user()->id_pegawai;
 
         try{
             $pengajuan = PengajuanKetidakhadiran::with(['pegawai:id,nama,nama_jabatan', 'kategori:id,nama_kategori','approver:id,nama,nama_jabatan'])
@@ -79,7 +79,7 @@ class PengajuanController extends Controller
             'dokumen_pendukung' => 'nullable|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:2048',
         ]);
 
-        $id_pegawai = Auth::id_pegawai();
+        $id_pegawai = Auth::user()->id_pegawai;
         $tgl_mulai  = Carbon::parse($request->tanggal_mulai);
         $tgl_selesai= Carbon::parse($request->tgl_selesai);
         $jml_hari   = $tgl_selesai->diffInDays($tgl_mulai) + 1;
