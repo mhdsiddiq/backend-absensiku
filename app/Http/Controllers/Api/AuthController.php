@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Pegawai;
 use App\Models\Users;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -13,7 +14,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $validator = Validator::make($request->all(), [
-            'id_pegawai' => 'required|string',
+            'nip' => 'required|string',
             'password' => 'required|string',
         ]);
 
@@ -25,8 +26,17 @@ class AuthController extends Controller
             ], 400);
         }
 
+        $pegawai = Pegawai::where('nip', $request->nip)->first();
+
+        if (!$pegawai) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid NIP or Password.'
+            ], 401);
+        }
+
         $user = Users::with(['role', 'pegawai'])
-            ->where('id_pegawai', $request->id_pegawai)
+            ->where('id_pegawai', $pegawai->id)
             ->where('is_active', true)
             ->first();
 
