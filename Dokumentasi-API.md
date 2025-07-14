@@ -19,7 +19,7 @@ Login untuk mendapatkan token autentikasi (Bearer Token).
 - **Headers**:
   - `Accept: application/json`
 - **Request Body** (form-data):
-  - `id_pegawai` (string, required): ID unik dari pegawai.
+  - `nip` (string, required): Nomor Induk Pegawai (NIP) dari pegawai.
   - `password` (string, required): Password pengguna.
 - **Success Response** (200 OK):
   ```json
