@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
         Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
+        Route::post('checkout/{id}', [AbsensiController::class, 'storeCheckOt']);
 
         //Role pegawai
         Route::get('this-month/{id}', [AbsensiController::class, 'getAllAttendanceEmployee']);
@@ -56,6 +57,8 @@ Route::middleware('auth:sanctum')->group(function () {
         //role pegawai untuk pengajuan per user
         Route::get('employees', [PengajuanController::class, 'getEmployeeSubmission']);
         Route::post('/', [PengajuanController::class, 'storeSubmission']);
+
+        Route::get('{id}', [PengajuanController::class, 'getSubmissionById']);
     });
 
 });

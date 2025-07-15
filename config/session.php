@@ -73,7 +73,6 @@ return [
     */
 
     'connection' => env('SESSION_CONNECTION'),
-
     /*
     |--------------------------------------------------------------------------
     | Session Database Table
@@ -169,7 +168,6 @@ return [
     */
 
     'secure' => env('SESSION_SECURE_COOKIE'),
-
     /*
     |--------------------------------------------------------------------------
     | HTTP Access Only

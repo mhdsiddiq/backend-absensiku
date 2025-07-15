@@ -68,6 +68,38 @@ class PengajuanController extends Controller
         }
     }
 
+    public function getSubmissionById($id)
+    {
+        if(!Auth::check()){
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Unauthorized. Please log in.',
+            ], 401);
+        }
+
+        try {
+            $submission = PengajuanKetidakhadiran::with(['pegawai:id,nama,nama_jabatan', 'kategori:id,nama_kategori', 'approver:id,nama,nama_jabatan'])
+                            ->findOrFail($id);
+
+            return response()->json([
+                'status' => 'success',
+                'message' => 'Submission data has been successfully retrieved',
+                'data'    => $submission
+            ], 200);
+        } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'Submission data not found.',
+            ], 404);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => 'An error occurred while retrieving the submission data.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
     public function storeSubmission(Request $request)
     {
         $request->validate([
