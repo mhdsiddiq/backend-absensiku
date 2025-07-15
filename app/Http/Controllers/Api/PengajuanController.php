@@ -22,7 +22,7 @@ class PengajuanController extends Controller
         try{
             $pengajuan = PengajuanKetidakhadiran::with(['pegawai:id,nama,nama_jabatan', 'kategori:id,nama_kategori','approver:id,nama,nama_jabatan'])
                             ->orderBy('created_at', 'desc')
-                            ->get();
+                            ->paginate(10);
 
             return response()->json([
                 'status' => 'success',
@@ -53,7 +53,7 @@ class PengajuanController extends Controller
             $pengajuan = PengajuanKetidakhadiran::with(['pegawai:id,nama,nama_jabatan', 'kategori:id,nama_kategori','approver:id,nama,nama_jabatan'])
                             ->where('id_pegawai', $id_pegawai)
                             ->orderBy('created_at', 'desc')
-                            ->get();
+                            ->paginate(10);
             return response()->json([
                 'status'  => 'success',
                 'message' => 'Submission of absence data has been successfully retrieved',

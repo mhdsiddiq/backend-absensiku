@@ -295,7 +295,7 @@ class AbsensiController extends Controller
             ], 401);
         }
         try {
-            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->get();
+            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -332,7 +332,8 @@ class AbsensiController extends Controller
             $year = now()->year;
             $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
                 ->whereYear('tanggal', $year)
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -382,7 +383,8 @@ class AbsensiController extends Controller
                 ->where('id_pegawai', $pegawai->id)
                 ->whereYear('tanggal', $year)
                 ->whereMonth('tanggal', $month)
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
