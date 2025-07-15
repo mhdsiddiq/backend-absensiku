@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\JamKerjaController;
+use App\Http\Controllers\Api\RedisAuthController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
 use App\Http\Controllers\Api\PegawaiController;
 use App\Http\Controllers\Api\PengajuanController;
@@ -21,8 +22,9 @@ use App\Http\Controllers\Api\PengajuanController;
 */
 
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/redis-login', [RedisAuthController::class, 'login']);
 
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/profile', [AuthController::class, 'profile']);
 
