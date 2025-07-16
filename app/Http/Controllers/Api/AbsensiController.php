@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
+use App\Models\DashboardAbsensi;
 use App\Models\JamKerja;
 use App\Models\Pegawai;
 use Carbon\Carbon;
@@ -167,6 +168,8 @@ class AbsensiController extends Controller
                     'keterangan'      => $keterangan . ' - ' . ($request->keterangan ?? 'Absensi masuk')
                 ]);
             }
+            //simpan daa ke mongodb
+            $this->saveToMongoDB($absensi);
 
             $statusCode = $keterangan === 'Valid' ? 201 : 400;
             $message = $keterangan === 'Valid' ? 'Check-in successful' : 'Check-in failed - Invalid location';
@@ -404,5 +407,26 @@ class AbsensiController extends Controller
                 'data' => null
             ], 500);
         }
+    }
+
+    private function saveToMongoDB($absensi)
+    {
+        // Hitung statistik yang diperlukan
+        $jumlahKaryawan = Absensi::distinct('id_pegawai')->count();
+        $jumlahAbsensi = Absensi::where('tanggal', $absensi->tanggal)->count();
+        $jumlahTidakHadir = $jumlahKaryawan - $jumlahAbsensi;
+        $persentaseKehadiran = $jumlahKaryawan > 0 ? ($jumlahAbsensi / $jumlahKaryawan) * 100 : 0;
+        // Simpan ke MongoDB
+        DashboardAbsensi::updateOrCreate(
+            ['tanggal' => $absensi->tanggal],
+            [
+                'jumlah_karyawan' => $jumlahKaryawan,
+                'jumlah_absensi' => $jumlahAbsensi,
+                'jumlah_tidak_hadir' => $jumlahTidakHadir,
+                'persentase_kehadiran' => round($persentaseKehadiran, 2),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        );
     }
 }
