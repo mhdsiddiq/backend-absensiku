@@ -1,11 +1,10 @@
 <?php
 
 namespace App\Models;
-
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
-
+use MongoDB\Laravel\Eloquent\Model;
 class DashboardAbsensi extends Model
 {
-    use HasFactory;
+    protected $connection = 'mongodb';
+    protected $collection = 'dashboard_absensi';
+    protected $fillable = ['field1', 'field2'];
 }

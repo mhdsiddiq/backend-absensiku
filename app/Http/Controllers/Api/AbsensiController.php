@@ -151,7 +151,6 @@ class AbsensiController extends Controller
                     'longitude_masuk' => $request->longitude,
                     'terlambat'       => $terlambat,
                     'keterangan'      => "Absensi masuk " . $keterangan,
-                    'status_absensi' => $validLokasi ? 'Valid' : 'perlu verifikasi'
                 ]);
 
                 $absensi = $existingAbsensi;
@@ -263,8 +262,7 @@ class AbsensiController extends Controller
                 'plg_cepat' => $currentTime->lt($jamKeluarTerjadwal) ? $currentTime->format('H:i:s') : null,
                 'keterangan' => $validLokasi
                     ? 'Check-out valid'
-                    : 'Check-out di lokasi tidak valid. Jarak ' . round($jarak) . 'm dari kantor',
-                'status_absensi' => $validLokasi ? 'valid' : 'perlu verifikasi'
+                    : 'Check-out di lokasi tidak valid. Jarak ' . round($jarak) . 'm dari kantor'
             ]);
 
             return response()->json([
