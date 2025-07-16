@@ -19,7 +19,7 @@ class PegawaiController extends Controller
         }
 
         try {
-            $pegawai = Pegawai::select('id', 'nip', 'nama', 'nama_jabatan')->get();
+            $pegawai = Pegawai::select('id', 'nip', 'nama', 'nama_jabatan')->paginate(10);
             if (!$pegawai) {
                 return response()->json([
                     'status' => 'error',

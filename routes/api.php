@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\RedisAuthController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
 use App\Http\Controllers\Api\PegawaiController;
 use App\Http\Controllers\Api\PengajuanController;
+use Illuminate\Support\Facades\DB;
 
 /*
 |--------------------------------------------------------------------------
@@ -61,6 +62,33 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
         Route::post('/', [PengajuanController::class, 'storeSubmission']);
 
         Route::get('{id}', [PengajuanController::class, 'getSubmissionById']);
+    });
+
+    // Route untuk MongoDB Statistics
+    Route::prefix('statistic')->group(function () {
+        Route::get('today', function () {
+            $stats = \App\Models\DashboardAbsensi::today()->first();
+            return response()->json($stats);
+        });
+
+        Route::get('range', function (Request $request) {
+            $start = $request->input('start_date');
+            $end = $request->input('end_date');
+
+            $stats = \App\Models\DashboardAbsensi::dateRange($start, $end)->get();
+            return response()->json($stats);
+        });
+    });
+
+    // Route untuk testing MongoDB
+    Route::get('test-mongo', function () {
+        try {
+            $connection = DB::connection('mongodb');
+            $connection->getMongoClient()->listDatabases();
+            return 'MongoDB connection working!';
+        } catch (\Exception $e) {
+            return 'MongoDB connection failed: '.$e->getMessage();
+        }
     });
 
 });

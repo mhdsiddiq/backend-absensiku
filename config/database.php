@@ -92,6 +92,17 @@ return [
             // 'encrypt' => env('DB_ENCRYPT', 'yes'),
             // 'trust_server_certificate' => env('DB_TRUST_SERVER_CERTIFICATE', 'false'),
         ],
+        'mongodb' => [
+            'driver' => 'mongodb',
+            'host' => env('DB_MONGO_HOST', '127.0.0.1'),
+            'port' => env('DB_MONGO_PORT', 27017),
+            'database' => env('DB_MONGO_DATABASE', 'absensiku_dashboard'),
+            'username' => env('DB_MONGO_USERNAME', ''),
+            'password' => env('DB_MONGO_PASSWORD', ''),
+            'options' => [
+                'database' => env('DB_MONGO_DATABASE', 'absensiku_dashboard'),
+            ],
+        ],
 
     ],
 
@@ -144,6 +155,18 @@ return [
             'password' => env('REDIS_PASSWORD'),
             'port' => env('REDIS_PORT', '6379'),
             'database' => env('REDIS_CACHE_DB', '1'),
+        ],
+
+        'mongodb' => [
+            'driver'   => 'mongodb',
+            'host'     => env('MONGODB_HOST', '127.0.0.1'),
+            'port'     => env('MONGODB_PORT', 27017),
+            'database' => env('MONGODB_DATABASE'),
+            'username' => env('MONGODB_USERNAME'),
+            'password' => env('MONGODB_PASSWORD'),
+            'options'  => [
+                'database' => env('MONGODB_AUTHDATABASE', 'admin'), // database autentikasi mongo
+            ],
         ],
 
     ],

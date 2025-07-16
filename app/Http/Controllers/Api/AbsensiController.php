@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Absensi;
+use App\Models\DashboardAbsensi;
 use App\Models\JamKerja;
 use App\Models\Pegawai;
 use Carbon\Carbon;
@@ -151,7 +152,6 @@ class AbsensiController extends Controller
                     'longitude_masuk' => $request->longitude,
                     'terlambat'       => $terlambat,
                     'keterangan'      => "Absensi masuk " . $keterangan,
-                    'status_absensi' => $validLokasi ? 'Valid' : 'perlu verifikasi'
                 ]);
 
                 $absensi = $existingAbsensi;
@@ -168,6 +168,8 @@ class AbsensiController extends Controller
                     'keterangan'      => $keterangan . ' - ' . ($request->keterangan ?? 'Absensi masuk')
                 ]);
             }
+            //simpan daa ke mongodb
+            $this->saveToMongoDB($absensi);
 
             $statusCode = $keterangan === 'Valid' ? 201 : 400;
             $message = $keterangan === 'Valid' ? 'Check-in successful' : 'Check-in failed - Invalid location';
@@ -263,8 +265,7 @@ class AbsensiController extends Controller
                 'plg_cepat' => $currentTime->lt($jamKeluarTerjadwal) ? $currentTime->format('H:i:s') : null,
                 'keterangan' => $validLokasi
                     ? 'Check-out valid'
-                    : 'Check-out di lokasi tidak valid. Jarak ' . round($jarak) . 'm dari kantor',
-                'status_absensi' => $validLokasi ? 'valid' : 'perlu verifikasi'
+                    : 'Check-out di lokasi tidak valid. Jarak ' . round($jarak) . 'm dari kantor'
             ]);
 
             return response()->json([
@@ -295,7 +296,7 @@ class AbsensiController extends Controller
             ], 401);
         }
         try {
-            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->get();
+            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -332,7 +333,8 @@ class AbsensiController extends Controller
             $year = now()->year;
             $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
                 ->whereYear('tanggal', $year)
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -382,7 +384,8 @@ class AbsensiController extends Controller
                 ->where('id_pegawai', $pegawai->id)
                 ->whereYear('tanggal', $year)
                 ->whereMonth('tanggal', $month)
-                ->get();
+                ->orderBy('created_at', 'desc')
+                ->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -404,5 +407,26 @@ class AbsensiController extends Controller
                 'data' => null
             ], 500);
         }
+    }
+
+    private function saveToMongoDB($absensi)
+    {
+        // Hitung statistik yang diperlukan
+        $jumlahKaryawan = Absensi::distinct('id_pegawai')->count();
+        $jumlahAbsensi = Absensi::where('tanggal', $absensi->tanggal)->count();
+        $jumlahTidakHadir = $jumlahKaryawan - $jumlahAbsensi;
+        $persentaseKehadiran = $jumlahKaryawan > 0 ? ($jumlahAbsensi / $jumlahKaryawan) * 100 : 0;
+        // Simpan ke MongoDB
+        DashboardAbsensi::updateOrCreate(
+            ['tanggal' => $absensi->tanggal],
+            [
+                'jumlah_karyawan' => $jumlahKaryawan,
+                'jumlah_absensi' => $jumlahAbsensi,
+                'jumlah_tidak_hadir' => $jumlahTidakHadir,
+                'persentase_kehadiran' => round($persentaseKehadiran, 2),
+                'created_at' => now(),
+                'updated_at' => now()
+            ]
+        );
     }
 }
