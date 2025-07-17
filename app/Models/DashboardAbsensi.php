@@ -36,7 +36,7 @@ class DashboardAbsensi extends Model
 
     public function scopeToday($query)
     {
-        return $query->where('tanggal', Carbon::today()->format('Y-m-d'));
+        return $query->whereBetween('tanggal', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()]);
     }
 
     public function scopeDateRange($query, $startDate, $endDate)
