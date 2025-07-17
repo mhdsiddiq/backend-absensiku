@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AbsensiController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
+use App\Http\Controllers\Api\DashboardAbsensiController;
 use App\Http\Controllers\Api\JamKerjaController;
 use App\Http\Controllers\Api\RedisAuthController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
@@ -66,18 +67,8 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
 
     // Route untuk MongoDB Statistics
     Route::prefix('statistic')->group(function () {
-        Route::get('today', function () {
-            $stats = \App\Models\DashboardAbsensi::today()->first();
-            return response()->json($stats);
-        });
-
-        Route::get('range', function (Request $request) {
-            $start = $request->input('start_date');
-            $end = $request->input('end_date');
-
-            $stats = \App\Models\DashboardAbsensi::dateRange($start, $end)->get();
-            return response()->json($stats);
-        });
+        Route::get('today', [DashboardAbsensiController::class, 'getTodayStatistics']);
+        Route::get('range', [DashboardAbsensiController::class, 'getDateRangeStatistics']);
     });
 
     // Route untuk testing MongoDB
