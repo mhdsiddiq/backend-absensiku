@@ -51,7 +51,7 @@ class RedisAuthController extends Controller
         $token = $user->createToken('AbsensiKu')->plainTextToken;
 
         // Store user data and token in Redis
-        Redis::setex('user:' . $user->id, 60, json_encode([
+        Redis::setex('user:' . $user->id, 60000, json_encode([
             'user' => $user,
             'token' => $token,
             'role' => $user->role->nama_role
