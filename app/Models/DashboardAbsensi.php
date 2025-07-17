@@ -29,19 +29,21 @@ class DashboardAbsensi extends Model
 
     public function scopeByDate($query, $date)
     {
-        return $query->where('tanggal', Carbon::parse($date)->format('Y-m-d'));
+        $carbonDate = Carbon::parse($date)->startOfDay();
+        return $query->where('tanggal', '>=', $carbonDate)
+                     ->where('tanggal', '<', $carbonDate->copy()->addDay());
     }
 
     public function scopeToday($query)
     {
-        return $query->where('tanggal', Carbon::today()->format('Y-m-d'));
+        return $query->whereBetween('tanggal', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()]);
     }
 
     public function scopeDateRange($query, $startDate, $endDate)
     {
-        return $query->whereBetween('tanggal', [
-            Carbon::parse($startDate)->format('Y-m-d'),
-            Carbon::parse($endDate)->format('Y-m-d')
-        ]);
+        $start = Carbon::parse($startDate)->startOfDay();
+        $end = Carbon::parse($endDate)->endOfDay();
+
+        return $query->whereBetween('tanggal', [$start, $end]);
     }
 }
