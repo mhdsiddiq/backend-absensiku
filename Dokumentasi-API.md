@@ -15,7 +15,7 @@ Endpoint yang berhubungan dengan autentikasi pengguna.
 Login untuk mendapatkan token autentikasi (Bearer Token).
 
 - **Method**: `POST`
-- **Endpoint**: `localhost:8000/api/login`
+- **Endpoint**: `localhost:8000/api/login-redis`
 - **Headers**:
   - `Accept: application/json`
 - **Request Body** (form-data):
@@ -407,6 +407,170 @@ Mengambil seluruh data pengajuan ketidakhadiran dari semua pegawai.
   {
     "status": "error",
     "message": "An error occurred while retrieving submission of absence data.",
+    "error": "..."
+  }
+  ```
+
+### 2. Membuat Pengajuan Ketidakhadiran
+
+Membuat pengajuan ketidakhadiran baru untuk seorang pegawai.
+
+- **Method**: `POST`
+- **Endpoint**: `localhost:8000/api/submission`
+- **Headers**:
+  - `Accept: application/json`
+  - `Content-Type: application/json`
+  - `Authorization: Bearer <YOUR_AUTH_TOKEN>`
+- **Request Body** (JSON):
+  - `id_pegawai` (integer, required): ID pegawai yang mengajukan.
+  - `id_kategori` (integer, required): ID kategori ketidakhadiran (misal: sakit, izin).
+  - `tanggal_mulai` (date, required): Tanggal mulai ketidakhadiran (format: YYYY-MM-DD).
+  - `tanggal_selesai` (date, required): Tanggal selesai ketidakhadiran (format: YYYY-MM-DD).
+  - `keterangan` (string, optional): Keterangan tambahan mengenai pengajuan.
+- **Success Response** (201 Created):
+  ```json
+  {
+    "status": "success",
+    "message": "Submission of absence created successfully",
+    "data": {
+      "id": 1,
+      "id_pegawai": 2,
+      "id_kategori": 1,
+      "tanggal_mulai": "2025-07-12",
+      "tanggal_selesai": "2025-07-12",
+      "keterangan": "Sakit demam",
+      "status_pengajuan": "pending"
+    }
+  }
+  ```
+- **Error Response** (400 Bad Request - Validasi Gagal):
+  ```json
+  {
+    "status": "error",
+    "message": "Validation Error",
+    "errors": {
+      "id_pegawai": [
+        "The id pegawai field is required."
+      ]
+    }
+  }
+  ```
+- **Error Response** (500 Internal Server Error):
+  ```json
+  {
+    "status": "error",
+    "message": "An error occurred while creating submission of absence.",
+    "error": "..."
+  }
+  ```
+
+### 3. Menyetujui Pengajuan Ketidakhadiran (Role: HRD)
+
+Menyetujui pengajuan ketidakhadiran seorang pegawai.
+
+- **Method**: `POST`
+- **Endpoint**: `localhost:8000/api/submission/approve/{id}`
+- **Headers**:
+  - `Accept: application/json`
+  - `Authorization: Bearer <YOUR_AUTH_TOKEN>`
+- **Path Parameter**:
+  - `id` (integer, required): ID pengajuan yang akan disetujui.
+- **Success Response** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "message": "Submission approved successfully"
+  }
+  ```
+- **Error Response** (404 Not Found):
+  ```json
+  {
+    "status": "error",
+    "message": "Submission not found"
+  }
+  ```
+- **Error Response** (500 Internal Server Error):
+  ```json
+  {
+    "status": "error",
+    "message": "An error occurred while approving the submission.",
+    "error": "..."
+  }
+  ```
+
+---
+
+## Statistik (Membutuhkan Autentikasi)
+
+Endpoint untuk mendapatkan data statistik absensi.
+
+---
+
+### 1. Mendapatkan Statistik Absensi Hari Ini (Role: HRD)
+
+Mendapatkan ringkasan statistik absensi (jumlah hadir, sakit, izin, dll.) untuk semua pegawai pada hari ini.
+
+- **Method**: `GET`
+- **Endpoint**: `localhost:8000/api/statistic/today`
+- **Headers**:
+  - `Accept: application/json`
+  - `Authorization: Bearer <YOUR_AUTH_TOKEN>`
+- **Success Response** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "message": "Today's attendance statistics retrieved successfully",
+    "data": {
+      "total_pegawai": 100,
+      "total_hadir": 80,
+      "total_sakit": 10,
+      "total_izin": 5,
+      "total_alpha": 5,
+      "persentase_kehadiran": "80%"
+    }
+  }
+  ```
+- **Error Response** (500 Internal Server Error):
+  ```json
+  {
+    "status": "error",
+    "message": "An error occurred while retrieving today's attendance statistics.",
+    "error": "..."
+  }
+  ```
+
+### 2. Mendapatkan Statistik Absensi Berdasarkan Rentang Tanggal (Role: HRD)
+
+Mendapatkan ringkasan statistik absensi (jumlah hadir, sakit, izin, dll.) untuk semua pegawai berdasarkan rentang tanggal.
+
+- **Method**: `GET`
+- **Endpoint**: `localhost:8000/api/statistic/range`
+- **Headers**:
+  - `Accept: application/json`
+  - `Authorization: Bearer <YOUR_AUTH_TOKEN>`
+- **Query Parameters**:
+  - `start_date` (date, required): Tanggal mulai rentang (format: YYYY-MM-DD).
+  - `end_date` (date, required): Tanggal akhir rentang (format: YYYY-MM-DD).
+- **Success Response** (200 OK):
+  ```json
+  {
+    "status": "success",
+    "message": "Attendance statistics for date range retrieved successfully",
+    "data": {
+      "total_pegawai": 100,
+      "total_hadir": 800,
+      "total_sakit": 100,
+      "total_izin": 50,
+      "total_alpha": 50,
+      "persentase_kehadiran": "80%"
+    }
+  }
+  ```
+- **Error Response** (500 Internal Server Error):
+  ```json
+  {
+    "status": "error",
+    "message": "An error occurred while retrieving attendance statistics for date range.",
     "error": "..."
   }
   ```
