@@ -37,10 +37,9 @@ class DashboardAbsensiController extends Controller
         }
     }
 
-    public function getLast7DaysStatistics()
+    public function getDateRangeStatistic()
     {
         try {
-            // Hitung tanggal dari hari ini ke 6 hari ke belakang
             $end = now()->format('Y-m-d');
             $start = now()->subDays(6)->format('Y-m-d');
 

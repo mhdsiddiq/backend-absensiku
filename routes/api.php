@@ -69,7 +69,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
     // Route untuk MongoDB Statistics
     Route::prefix('statistic')->group(function () {
         Route::get('today', [DashboardAbsensiController::class, 'getTodayStatistics']);
-        Route::get('range', [DashboardAbsensiController::class, 'getDateRangeStatistics']);
+        Route::get('range', [DashboardAbsensiController::class, 'getDateRangeStatistic']);
     });
 
     // Route untuk testing MongoDB
