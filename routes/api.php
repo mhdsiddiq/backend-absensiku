@@ -5,6 +5,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DashboardAbsensiController;
+use App\Http\Controllers\Api\ElasticsearchSearchController;
 use App\Http\Controllers\Api\JamKerjaController;
 use App\Http\Controllers\Api\RedisAuthController;
 use App\Http\Controllers\Api\KategoriketidakhadiranController;
@@ -71,6 +72,9 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
         Route::get('today', [DashboardAbsensiController::class, 'getTodayStatistics']);
         Route::get('range', [DashboardAbsensiController::class, 'getDateRangeStatistic']);
     });
+
+    //elasticsearch
+    Route::get('/search/employees', [ElasticsearchSearchController::class, 'searchEmployees']);
 
     // Route untuk testing MongoDB
     Route::get('test-mongo', function () {
