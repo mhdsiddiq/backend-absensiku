@@ -32,7 +32,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
 
     //pegawai
     Route::get('/employee', [PegawaiController::class, 'getAllEmployee']);
-    Route::get('/employee-statistics', [PegawaiController::class, 'getEmployeeStatistics']);
+    Route::get('/employee-statistics', [PegawaiController::class, 'getEmployeeStatistic']);
 
     //jam kerja
     Route::get('/working-hour', [JamKerjaController::class, 'getShift']);
