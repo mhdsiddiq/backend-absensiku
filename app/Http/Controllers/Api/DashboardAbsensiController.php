@@ -9,7 +9,7 @@ use Exception;
 
 class DashboardAbsensiController extends Controller
 {
-     public function getTodayStatistics()
+    public function getTodayStatistics()
     {
         try {
             $stats = DashboardAbsensi::today()->first();
@@ -28,7 +28,6 @@ class DashboardAbsensiController extends Controller
                 'message' => 'Attendance statistics for today',
                 'data' => $stats
             ], 200);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
@@ -38,44 +37,32 @@ class DashboardAbsensiController extends Controller
         }
     }
 
-    public function getDateRangeStatistics(Request $request)
+    public function getLast7DaysStatistics()
     {
         try {
-            $request->validate([
-                'start_date' => 'required|date_format:Y-m-d',
-                'end_date' => 'required|date_format:Y-m-d|after_or_equal:start_date',
-            ]);
+            // Hitung tanggal dari hari ini ke 6 hari ke belakang
+            $end = now()->format('Y-m-d');
+            $start = now()->subDays(6)->format('Y-m-d');
 
-            $start = $request->input('start_date');
-            $end   = $request->input('end_date');
             $stats = DashboardAbsensi::dateRange($start, $end)->get();
 
             if ($stats->isEmpty()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'No attendance statistics found for the specified date range',
+                    'message' => 'No attendance statistics found for the last 7 days',
                     'data' => []
                 ], 200);
             }
 
             return response()->json([
                 'success' => true,
-                'message' => 'Attendance statistics for date range',
+                'message' => 'Attendance statistics for the last 7 days',
                 'data' => $stats
             ], 200);
-
-        } catch (\Illuminate\Validation\ValidationException $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Validation Error: ' . $e->getMessage(),
-                'errors' => $e->errors(),
-                'data' => null
-            ], 422);
-
         } catch (Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to retrieve attendance statistics for date range: ' . $e->getMessage(),
+                'message' => 'Failed to retrieve attendance statistics: ' . $e->getMessage(),
                 'data' => null
             ], 500);
         }
