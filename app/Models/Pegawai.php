@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Elastic\Elasticsearch\Client as ElasticsearchClient;
 
 class Pegawai extends Model
 {
@@ -41,4 +42,33 @@ class Pegawai extends Model
     {
         return $this->hasMany(PengajuanKetidakhadiran::class, 'id_pegawai');
     }
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saved(function ($karyawan) {
+            app(ElasticsearchClient::class)->index([
+                'index' => 'karyawan',
+                'id' => $karyawan->nip,
+                'body' => [
+                    'nip' => $karyawan->nip,
+                    'nama' => $karyawan->nama,
+                    'jabatan' => $karyawan->jabatan,
+                    'divisi' => $karyawan->divisi,
+                    'alamat' => $karyawan->alamat,
+                    'no_telepon' => $karyawan->no_telepon,
+                    'status' => $karyawan->status,
+                ]
+            ]);
+        });
+
+        static::deleted(function ($karyawan) {
+            app(ElasticsearchClient::class)->delete([
+                'index' => 'karyawan',
+                'id' => $karyawan->nip,
+            ]);
+        });
+    }
+
 }
