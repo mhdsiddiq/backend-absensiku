@@ -36,48 +36,49 @@ class ElasticsearchSearchController extends Controller
             }
 
             $params = [
-                'index' => 'pegawai',
-                'body' => [
-                    'query' => [
-                        'bool' => [
-                            'should' => [
-                                [
-                                    'match' => [
-                                        'nama' => [
-                                            'query' => $query,
-                                            'boost' => 3 // Boosting untuk nama
-                                        ]
-                                    ]
-                                ],
-                                [
-                                    'match' => [
-                                        'nip' => [
-                                            'query' => $query,
-                                            'boost' => 2 // Boosting untuk NIP
-                                        ]
-                                    ]
-                                ],
-                                [
-                                    'match' => [
-                                        'divisi' => [
-                                            'query' => $query,
-                                            'boost' => 1.5 // Boosting untuk divisi
-                                        ]
-                                    ]
-                                ],
-                                [
-                                    'match' => [
-                                        'nama_jabatan' => [
-                                            'query' => $query,
-                                            'boost' => 1 // Boosting untuk nama jabatan
-                                        ]
-                                    ]
-                                ]
+    'index' => 'pegawai',
+    'body' => [
+        'query' => [
+            'bool' => [
+                'should' => [
+                    [
+                        'match_phrase_prefix' => [
+                            'nama' => [
+                                'query' => $query,
+                                'boost' => 3
+                            ]
+                        ]
+                    ],
+                    [
+                        'match_phrase_prefix' => [
+                            'nip' => [
+                                'query' => $query,
+                                'boost' => 2
+                            ]
+                        ]
+                    ],
+                    [
+                        'match_phrase_prefix' => [
+                            'divisi' => [
+                                'query' => $query,
+                                'boost' => 1.5
+                            ]
+                        ]
+                    ],
+                    [
+                        'match_phrase_prefix' => [
+                            'nama_jabatan' => [
+                                'query' => $query,
+                                'boost' => 1
                             ]
                         ]
                     ]
                 ]
-            ];
+            ]
+        ]
+    ]
+];
+
 
             $response = $this->elasticsearch->search($params);
             $hits = collect($response['hits']['hits'])->pluck('_source');
