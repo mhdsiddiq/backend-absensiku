@@ -49,7 +49,7 @@ Route::middleware(['auth:sanctum', \App\Http\Middleware\CheckRedisToken::class])
 
         Route::get('check/{id}', [AbsensiController::class, 'checkAttendance']);
         Route::post('chekin/{id}', [AbsensiController::class, 'storeCheckIn']);
-        Route::post('checkout/{id}', [AbsensiController::class, 'storeCheckOt']);
+        Route::post('checkout/{id}', [AbsensiController::class, 'storeCheckOut']);
 
         //Role pegawai
         Route::get('this-month/{id}', [AbsensiController::class, 'getAllAttendanceEmployee']);

@@ -7,7 +7,7 @@ use MongoDB\Laravel\Eloquent\Model;
 class DashboardAbsensi extends Model
 {
     protected $connection = 'mongodb';
-    protected $collection = 'dashboard_absensi';
+    protected $collection = 'dashboard_absensis';
 
       protected $fillable = [
         'tanggal',

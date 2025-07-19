@@ -18,7 +18,7 @@ class AbsensiController extends Controller
 
     public function checkAttendance($id)
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized. Please log in.',
@@ -32,7 +32,7 @@ class AbsensiController extends Controller
         if (!$absensi) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'No attendance data found'
+                'message' => 'Absensi tida ditemukan'
             ], 404);
         }
 
@@ -72,7 +72,6 @@ class AbsensiController extends Controller
     public function storeCheckIn(Request $request, $id)
     {
         try {
-            // Validasi input
             $validator = Validator::make($request->all(), [
                 'latitude'   => 'required|numeric',
                 'longitude'  => 'required|numeric',
@@ -86,7 +85,6 @@ class AbsensiController extends Controller
                 ], 422);
             }
 
-            // Cek apakah pegawai exists
             $pegawai = Pegawai::find($id);
             if (!$pegawai) {
                 return response()->json([
@@ -95,7 +93,6 @@ class AbsensiController extends Controller
                 ], 404);
             }
 
-            // Cek apakah sudah ada absensi hari ini
             $existingAbsensi = Absensi::where('id_pegawai', $id)
                 ->whereDate('tanggal', Carbon::today())
                 ->first();
@@ -103,7 +100,7 @@ class AbsensiController extends Controller
             if ($existingAbsensi && !is_null($existingAbsensi->jam_masuk)) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Already checked in today',
+                    'message' => 'Anda sudah melakukan absensi hari ini',
                     'data' => [
                         'jam_masuk' => $existingAbsensi->jam_masuk,
                         'tanggal'   => $existingAbsensi->tanggal
@@ -111,9 +108,7 @@ class AbsensiController extends Controller
                 ], 400);
             }
 
-            // Ambil jam kerja
             $jamKerja = JamKerja::first();
-
             if (!$jamKerja) {
                 return response()->json([
                     'status'  => 'error',
@@ -124,25 +119,28 @@ class AbsensiController extends Controller
             $currentTime        = Carbon::now();
             $jamMasukTerjadwal  = Carbon::parse($jamKerja->jam_masuk);
             $jamKeluarTerjadwal = Carbon::parse($jamKerja->jam_keluar);
+            $terlambat = $currentTime->gt($jamMasukTerjadwal) ? $currentTime->format('H:i:s') : null;
 
-            // Hitung keterlambatan
-            $terlambat = null;
-            if ($currentTime->gt($jamMasukTerjadwal)) {
-                $terlambat = $currentTime->format('H:i:s');
-            }
-
-            // Validasi lokasi menggunakan koordinat dari tabel jam_kerja
+            // Validasi lokasi
             $kantorLat = floatval($jamKerja->latitude);
             $kantorLng = floatval($jamKerja->longitude);
-            $radiusKantor = 100; // meter
+            $radiusKantor = 10000; // meter
 
             $latUser = floatval($request->latitude);
             $lngUser = floatval($request->longitude);
 
             $jarak = $this->hitungJarak($latUser, $lngUser, $kantorLat, $kantorLng);
-            $keterangan = $jarak <= $radiusKantor ? 'Valid' : 'Tidak Valid';
-            $validLokasi= $keterangan;
 
+            if ($jarak > $radiusKantor) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Check-in failed - You are too far from the office location',
+                    'distance' => $jarak . ' meter',
+                    'radius_required' => $radiusKantor . ' meter'
+                ], 400);
+            }
+
+            // Lokasi valid, lanjut simpan absensi
             if ($existingAbsensi) {
                 $existingAbsensi->update([
                     'jadwal_masuk'    => $jamMasukTerjadwal->format('H:i:s'),
@@ -151,7 +149,7 @@ class AbsensiController extends Controller
                     'latitude_masuk'  => $request->latitude,
                     'longitude_masuk' => $request->longitude,
                     'terlambat'       => $terlambat,
-                    'keterangan'      => "Absensi masuk " . $keterangan,
+                    'keterangan'      => 'Valid - Absensi masuk',
                 ]);
 
                 $absensi = $existingAbsensi;
@@ -165,18 +163,15 @@ class AbsensiController extends Controller
                     'latitude_masuk'  => $request->latitude,
                     'longitude_masuk' => $request->longitude,
                     'terlambat'       => $terlambat,
-                    'keterangan'      => $keterangan . ' - ' . ($request->keterangan ?? 'Absensi masuk')
+                    'keterangan'      => 'Valid - Absensi masuk',
                 ]);
             }
-            //simpan daa ke mongodb
+
             $this->saveToMongoDB($absensi);
 
-            $statusCode = $keterangan === 'Valid' ? 201 : 400;
-            $message = $keterangan === 'Valid' ? 'Check-in successful' : 'Check-in failed - Invalid location';
-
             return response()->json([
-                'status' => $keterangan === 'Valid' ? 'success' : 'error',
-                'message' => $message,
+                'status' => 'success',
+                'message' => 'Check-in successful',
                 'data' => [
                     'id'                => $absensi->id,
                     'tanggal'           => $absensi->tanggal,
@@ -188,7 +183,7 @@ class AbsensiController extends Controller
                     'terlambat'         => $absensi->terlambat,
                     'keterangan'        => $absensi->keterangan,
                 ]
-            ], $statusCode);
+            ], 201);
         } catch (\Exception $e) {
             return response()->json([
                 'status'  => 'error',
@@ -208,7 +203,7 @@ class AbsensiController extends Controller
                 return $attendanceCheck;
             }
 
-            // Validasi input
+            // Validasi input lokasi
             $validator = Validator::make($request->all(), [
                 'latitude'   => 'required|numeric',
                 'longitude'  => 'required|numeric',
@@ -217,21 +212,27 @@ class AbsensiController extends Controller
             if ($validator->fails()) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Validation failed',
+                    'message' => 'Validasi gagal',
                     'errors' => $validator->errors()
                 ], 422);
             }
 
             // Ambil data absensi hari ini
             $absensi = Absensi::where('id_pegawai', $id)
-                    ->whereDate('tanggal', Carbon::today())
-                    ->first();
+                ->whereDate('tanggal', Carbon::today())
+                ->first();
 
-            // Validasi jam keluar sudah ada
+            if (!$absensi) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Absensi belum dilakukan'
+                ], 404);
+            }
+
             if ($absensi->jam_keluar) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'You have checked out today.'
+                    'message' => 'Anda sudah melakukan check-out hari ini'
                 ], 400);
             }
 
@@ -240,14 +241,22 @@ class AbsensiController extends Controller
             if (!$jamKerja) {
                 return response()->json([
                     'status' => 'error',
-                    'message' => 'Work schedule not found'
+                    'message' => 'Jadwal kerja tidak ditemukan'
                 ], 404);
             }
 
             $currentTime = Carbon::now();
-            $jamKeluarTerjadwal = Carbon::parse($jamKerja->jam_keluar);
+            $jadwalKeluar = Carbon::parse($jamKerja->jam_keluar);
 
-            // Validasi lokasi
+            // ✅ Validasi hanya boleh checkout setelah jam_keluar
+            if ($currentTime->lt($jadwalKeluar)) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal check-out: belum masuk waktu pulang (jam keluar terjadwal: ' . $jadwalKeluar->format('H:i') . ')'
+                ], 403);
+            }
+
+            // Hitung jarak lokasi sekarang dengan titik absensi
             $jarak = $this->hitungJarak(
                 $request->latitude,
                 $request->longitude,
@@ -255,48 +264,51 @@ class AbsensiController extends Controller
                 $jamKerja->longitude
             );
 
-            $validLokasi = $jarak <= 100; // dalam meter
+            if ($jarak > 100) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Gagal check-out: lokasi di luar radius 100 meter',
+                    'jarak_dari_kantor' => round($jarak) . ' meter'
+                ], 403);
+            }
 
-            // Update data check-out
-            $absensi->update([
-                'jam_keluar' => $currentTime->format('H:i:s'),
-                'latitude_keluar' => $request->latitude,
-                'longitude_keluar' => $request->longitude,
-                'plg_cepat' => $currentTime->lt($jamKeluarTerjadwal) ? $currentTime->format('H:i:s') : null,
-                'keterangan' => $validLokasi
-                    ? 'Check-out valid'
-                    : 'Check-out di lokasi tidak valid. Jarak ' . round($jarak) . 'm dari kantor'
-            ]);
+            // Update absensi
+            $absensi->jam_keluar = $currentTime->format('H:i:s');
+            $absensi->latitude_keluar = $request->latitude;
+            $absensi->longitude_keluar = $request->longitude;
+            $absensi->pulang_cepat = null; // tidak dihitung karena sudah lewat jam_keluar
+            $absensi->keterangan = 'Check-out valid';
+            $absensi->save();
 
             return response()->json([
                 'status' => 'success',
-                'message' => 'Check-out berhasil dicatat',
+                'message' => 'Berhasil check-out',
                 'data' => [
                     'jam_keluar' => $absensi->jam_keluar,
-                    'plg_cepat' => $absensi->plg_cepat,
-                    'lokasi_valid' => $validLokasi,
+                    'lokasi_valid' => true,
                     'jarak_dari_kantor' => round($jarak) . ' meter'
                 ]
             ], 200);
-
         } catch (\Exception $e) {
             return response()->json([
                 'status' => 'error',
-                'message' => 'Failed to check out : ' . $e->getMessage()
+                'message' => 'Gagal check-out: ' . $e->getMessage()
             ], 500);
         }
     }
 
     public function getAllAttendance()
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized. Please log in.',
             ], 401);
         }
         try {
-            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')->paginate(10);
+            $absensi = Absensi::with('pegawai:id,nama,nama_jabatan')
+                ->orderBy('tanggal', 'desc')
+                ->paginate(10);
 
             if ($absensi->isEmpty()) {
                 return response()->json([
@@ -322,7 +334,7 @@ class AbsensiController extends Controller
 
     public function getAttendanceYear()
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized. Please log in.',
@@ -358,16 +370,17 @@ class AbsensiController extends Controller
         }
     }
 
-    public function getAllAttendanceEmployee($id) //id_pegawai
+    public function getAllAttendanceEmployee($id)
     {
-        if(!Auth::check()){
+        if (!Auth::check()) {
             return response()->json([
                 'status' => 'error',
                 'message' => 'Unauthorized. Please log in.',
             ], 401);
         }
+
         try {
-            $pegawai = Pegawai::where('id', $id)->first();
+            $pegawai = Pegawai::find($id);
 
             if (!$pegawai) {
                 return response()->json([
@@ -377,27 +390,50 @@ class AbsensiController extends Controller
                 ], 404);
             }
 
-            $year  = now()->year;
-            $month = now()->month;
+            $now = Carbon::now('Asia/Jakarta');
+            $year = $now->year;
+            $month = $now->month;
+
+            // Ambil data absensi (tanpa pagination dulu karena akan diubah isinya)
             $absensi = Absensi::select('id', 'id_pegawai', 'tanggal', 'jadwal_masuk', 'jadwal_keluar', 'jam_masuk', 'jam_keluar', 'terlambat')
                 ->with('pegawai:id,nama,nama_jabatan')
                 ->where('id_pegawai', $pegawai->id)
                 ->whereYear('tanggal', $year)
                 ->whereMonth('tanggal', $month)
-                ->orderBy('created_at', 'desc')
-                ->paginate(10);
+                ->orderBy('tanggal', 'desc')
+                ->get()
+                ->map(function ($item) {
+                    if ($item->terlambat !== null && $item->jam_masuk && $item->jadwal_masuk) {
+                        $jamMasuk = Carbon::parse($item->jam_masuk);
+                        $jadwalMasuk = Carbon::parse($item->jadwal_masuk);
 
-            if ($absensi->isEmpty()) {
-                return response()->json([
-                    'success' => true,
-                    'message' => 'No attendance data found for this month',
-                    'data' => []
-                ], 200);
-            }
+                        if ($jamMasuk > $jadwalMasuk) {
+                            $diffInMinutes = $jamMasuk->diffInMinutes($jadwalMasuk);
+                            $jam = floor($diffInMinutes / 60);
+                            $menit = $diffInMinutes % 60;
+
+                            if ($jam > 0 && $menit > 0) {
+                                $item->terlambat_dalam_jam = "$jam jam $menit menit";
+                            } elseif ($jam > 0) {
+                                $item->terlambat_dalam_jam = "$jam jam";
+                            } else {
+                                $item->terlambat_dalam_jam = "$menit menit";
+                            }
+                        } else {
+                            $item->terlambat_dalam_jam = "0 menit";
+                        }
+                    } else {
+                        $item->terlambat_dalam_jam = null;
+                    }
+
+                    return $item;
+                });
 
             return response()->json([
                 'success' => true,
-                'message' => 'List of attendance data for the current month',
+                'message' => $absensi->isEmpty()
+                    ? 'No attendance data found for this month'
+                    : 'List of attendance data for the current month',
                 'data' => $absensi
             ], 200);
         } catch (Exception $e) {
